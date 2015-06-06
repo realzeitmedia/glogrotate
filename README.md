@@ -7,12 +7,12 @@ It will figure out the date of the log entries from the filename. It won't
 touch files where the 'WARNING' and 'INFO' &c symlinks point to.
 
 # how
-glogrotate -base=/var/log/ -maxage=$((30 * 24))d myapp myotherapp
+glogrotate -base=/var/log/ -maxage=$((30 * 24))h myapp myotherapp
 
 It'll gzip all non-current files in
 
 * /var/log/myapp/*
 * /var/log/myotherapp/*
 
-and delete INFO files older than 24 days, WARNING files older than 2 * 24 days,
-and ERROR files older than 3 * 24 days. See -help how to change the periods.
+and delete INFO files older than 30 days, WARNING files older than 2 * 30 days,
+and ERROR files older than 3 * 30 days. See -help how to change the periods.
