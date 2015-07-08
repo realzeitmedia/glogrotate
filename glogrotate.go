@@ -50,7 +50,7 @@ func clean(dir, name string) {
 	}
 	fs, err := filepath.Glob(dir + "/" + name + "*")
 	if err != nil {
-		panic(err)
+		fatalf("file error: %s", err)
 	}
 
 	doNotTouch := map[string]struct{}{}
@@ -76,8 +76,8 @@ func clean(dir, name string) {
 		// we want the date from 'one.rz-reqmngt1-eu.root.log.ERROR.20150320-103857.29198'
 		// (might have a .gz suffix)
 		fields := strings.Split(f, ".")
-		if len(fields) < 2 {
-			panic(fmt.Sprintf("weird filename: %q", fields))
+		if len(fields) < 3 {
+			fatalf("unexpected filename: %q", f)
 		}
 		if fields[len(fields)-1] == `gz` {
 			fields = fields[:len(fields)-1]
@@ -92,11 +92,11 @@ func clean(dir, name string) {
 		case "ERROR", "FATAL":
 			dAfter = time.Duration(*errorMult) * (*deleteInfoAfter)
 		default:
-			panic(fmt.Sprintf("weird log level: %q", level))
+			fatalf("weird log level: %q", level)
 		}
 		d, err := time.Parse("20060102", strings.SplitN(fields[len(fields)-2], "-", 2)[0])
 		if err != nil {
-			panic(err)
+			fatalf("invalid date: %s", err)
 		}
 		if d.Before(time.Now().Add(-dAfter)) {
 			if *verbose {
@@ -110,8 +110,14 @@ func clean(dir, name string) {
 				fmt.Printf("gzipping %s...\n", f)
 			}
 			if err := exec.Command("gzip", f).Run(); err != nil {
-				panic(err)
+				fatalf("gzip: %s", err)
 			}
 		}
 	}
+}
+
+func fatalf(f string, args ...interface{}) {
+	fmt.Fprintf(os.Stderr, f, args)
+	fmt.Fprint(os.Stderr, "\n")
+	os.Exit(1)
 }
