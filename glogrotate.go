@@ -33,11 +33,11 @@ var (
 	deleteInfoAfter = flag.Duration("maxage", defaultDeleteInfoAfter, "delete INFO files older than this")
 	warnMult        = flag.Int("warn", defaultWarnMult, "multiplier relative to maxage for WARNING files")
 	errorMult       = flag.Int("error", defaultErrorMult, "multiplier relative to maxage for ERROR/FATAL files")
+	verbose         = flag.Bool("v", false, "verbose")
 )
 
 func main() {
 	flag.Parse()
-	// fmt.Printf("Deleting after: %s\n", *deleteAfter)
 
 	for _, log := range flag.Args() {
 		clean(*base+"/"+log, log)
@@ -45,7 +45,9 @@ func main() {
 }
 
 func clean(dir, name string) {
-	fmt.Printf("Clean %s/%s*...\n", dir, name)
+	if *verbose {
+		fmt.Printf("clean %s/%s*...\n", dir, name)
+	}
 	fs, err := filepath.Glob(dir + "/" + name + "*")
 	if err != nil {
 		panic(err)
@@ -66,7 +68,9 @@ func clean(dir, name string) {
 
 	for _, f := range candidates {
 		if _, ok := doNotTouch[f]; ok {
-			fmt.Printf("don't touch: %s\n", f)
+			if *verbose {
+				fmt.Printf("don't touch: %s\n", f)
+			}
 			continue
 		}
 		// we want the date from 'one.rz-reqmngt1-eu.root.log.ERROR.20150320-103857.29198'
@@ -94,14 +98,17 @@ func clean(dir, name string) {
 		if err != nil {
 			panic(err)
 		}
-		// fmt.Printf("%q: %s\n", f, d)
 		if d.Before(time.Now().Add(-dAfter)) {
-			fmt.Printf("delete %s\n", f)
+			if *verbose {
+				fmt.Printf("delete %s\n", f)
+			}
 			os.Remove(f)
 			continue
 		}
 		if !strings.HasSuffix(f, ".gz") {
-			fmt.Printf("Gzipping %s...\n", f)
+			if *verbose {
+				fmt.Printf("gzipping %s...\n", f)
+			}
 			if err := exec.Command("gzip", f).Run(); err != nil {
 				panic(err)
 			}
